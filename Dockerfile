@@ -7,6 +7,7 @@ RUN pip install gunicorn==19.6.0
 COPY requirements.txt /usr/src/app/
 WORKDIR /usr/src/app
 RUN pip install -r requirements.txt
+RUN pip install gunicorn
 
 COPY . /usr/src/app/
 
@@ -27,4 +28,4 @@ RUN set -x \
 EXPOSE 5000
 ENTRYPOINT ["/usr/local/bin/gunicorn"]
 #CMD -w 3 -b 0.0.0.0:5000 --timeout=120 --reload --access-logfile /var/log/access.log server:app
-CMD ["main::app", "-b", "0.0.0.0:5000"]
+CMD ["main:api", "-b", "0.0.0.0:5000"]
