@@ -374,10 +374,22 @@ class VRPApi:
             data = req.context['doc']
             data = data['problem_data']
 
-            json_data = main(data['vehicle_capacity'], data['depot'], 
-                             data['customer_locations'], data['customer_demands'])
+            import signal
+            def handler(signum, frame):
+                print "Forever is over!"
+                raise Exception("end of time")
 
-            resp.body = json.dumps({"routes": json_data})
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(10)
+
+            try:
+                json_data = main(data['vehicle_capacity'], data['depot'], 
+                                 data['customer_locations'], data['customer_demands'])
+                resp.body = json.dumps({"routes": json_data})
+            except Exception, exc: 
+                # print exc
+                resp.body = json.dumps({"routes": []})
+
             
         except KeyError:
             raise falcon.HTTPBadRequest(
@@ -394,11 +406,24 @@ class mdcvrp:
         data = req.context['doc']
         data = data['problem_data']
 
-        json_data = main_2(data['vehicle_capacity'], data['depots'], 
-                         data['customer_locations'], data['customer_demands'])
+        import signal
+        def handler(signum, frame):
+            print "Forever is over!"
+            raise Exception("end of time")
 
-        resp.body = json.dumps({"routes": json_data})
-            
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(10)
+
+        try:
+            json_data = main_2(data['vehicle_capacity'], data['depots'], 
+                             data['customer_locations'], data['customer_demands'])
+
+            resp.body = json.dumps({"routes": json_data})
+        except Exception, exc: 
+            # print exc
+            resp.body = json.dumps({"routes": []})
+
+
         # except KeyError:
         #     raise falcon.HTTPBadRequest(
         #         'Missing thing',
