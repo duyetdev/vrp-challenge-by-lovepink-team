@@ -89,7 +89,7 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
     depot = 0
     locations.append(depot_location)
     num_vehicles = 5
-    search_time_limit = 40000
+    search_time_limit = 5000
     output = []
     
     # Create routing model.
@@ -198,7 +198,7 @@ def main_2(vehicle_capacity = 0, depot_location  = [], customer_locations  = [],
         num_locations = len(locations)
         depot = 0
         num_vehicles = 5
-        search_time_limit = 30000
+        search_time_limit = 5000
         output = []
 
         # Create routing model.
