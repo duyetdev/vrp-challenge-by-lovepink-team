@@ -89,7 +89,7 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
     depot = 0
     locations.append(depot_location)
     num_vehicles = 5
-    search_time_limit = 30000
+    search_time_limit = 40000
     output = []
     
     # Create routing model.
@@ -161,12 +161,14 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
                     index = assignment.Value(routing.NextVar(index))
 
                 node_index = routing.IndexToNode(index)
-                _output.append(node_index)
+                # _output.append(node_index)
                 load_var = capacity_dimension.CumulVar(index)
 #                 time_var = time_dimension.CumulVar(index)
                 plan_output +=                                     " {node_index} Load({load})".format(
                                             node_index=node_index,
                                             load=assignment.Value(load_var))
+                
+                _output = _output[1:]
                 output.append(_output)
                 print (plan_output)
                 
@@ -269,13 +271,14 @@ def main_2(vehicle_capacity = 0, depot_location  = [], customer_locations  = [],
                         index = assignment.Value(routing.NextVar(index))
 
                     node_index = routing.IndexToNode(index)
-                    _output.append(node_index)
+                    # _output.append(node_index)
                     load_var = capacity_dimension.CumulVar(index)
     #                 time_var = time_dimension.CumulVar(index)
                     plan_output += \
                                         " {node_index} Load({load})".format(
                                                 node_index=node_index,
                                                 load=assignment.Value(load_var))
+                    _output = _output[1:]
                     output.append(_output)
                     print (plan_output)
 
