@@ -13,7 +13,7 @@ COPY . /usr/src/app/
 
 RUN set -x \
     && apt-get update \
-    && pip install --upgrade pip \
+#     && pip install --upgrade pip \
     && curl https://bootstrap.pypa.io/ez_setup.py -o - | python \
     && pip install ez_setup \
     && wget https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.python.examples.3631.tar.gz \
