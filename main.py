@@ -89,7 +89,7 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
     depot = 0
     locations.append(depot_location)
     num_vehicles = 5
-    search_time_limit = 400000
+    search_time_limit = 30000
     output = []
     
     # Create routing model.
@@ -105,6 +105,8 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
         # method for finding a first solution to the problem.
         search_parameters.first_solution_strategy = (
                 routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+
+        search_parameters.time_limit_ms = search_time_limit
 
         # The 'PATH_CHEAPEST_ARC' method does the following:
         # Starting from a route "start" node, connect it to the node which produces the
@@ -194,7 +196,7 @@ def main_2(vehicle_capacity = 0, depot_location  = [], customer_locations  = [],
         num_locations = len(locations)
         depot = 0
         num_vehicles = 5
-        search_time_limit = 400000
+        search_time_limit = 30000
         output = []
 
         # Create routing model.
@@ -205,6 +207,8 @@ def main_2(vehicle_capacity = 0, depot_location  = [], customer_locations  = [],
             # a route is node 0.
             routing = pywrapcp.RoutingModel(num_locations, num_vehicles, depot)
             search_parameters = pywrapcp.RoutingModel.DefaultSearchParameters()
+
+            search_parameters.time_limit_ms = search_time_limit
 
             # Setting first solution heuristic: the
             # method for finding a first solution to the problem.
