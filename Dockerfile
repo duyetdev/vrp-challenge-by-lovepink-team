@@ -19,8 +19,8 @@ RUN set -x \
     && wget https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.python.examples.3631.tar.gz \
     && tar -zxf Google.OrTools.python.examples.3631.tar.gz \
     && cd ortools_examples \
-    && python setup.py install \
-    && pip install --upgrade ortools
+    && python setup.py install
+#     && pip install --upgrade ortools
 
 RUN set -x \
     && python ortools_examples/examples/python/golomb8.py
