@@ -5,7 +5,7 @@ from ortools.constraint_solver import routing_enums_pb2
 import falcon
 import json
 from wsgiref import simple_server
-
+import numpy as np
 
 def distance(x1, y1, x2, y2):
         # Manhattan distance
@@ -129,35 +129,6 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
         routing.AddDimension(demands_callback, NullCapacitySlack, VehicleCapacity,
                                                  fix_start_cumul_to_zero, capacity)
         
-        # Adding time dimension constraints.
-#         time_per_demand_unit = 300
-#         horizon = 24 * 3600
-#         time = "Time"
-#         tw_duration = 5 * 3600
-#         speed = 10
-
-#         service_times = CreateServiceTimeCallback(demands, time_per_demand_unit)
-#         service_time_callback = service_times.ServiceTime
-
-#         total_times = CreateTotalTimeCallback(service_time_callback, dist_callback, speed)
-#         total_time_callback = total_times.TotalTime
-
-        # Add a dimension for time-window constraints and limits on the start times and end times.
-
-#         routing.AddDimension(total_time_callback,    # total time function callback
-#                                                  horizon,
-#                                                  horizon,
-#                                                  fix_start_cumul_to_zero,
-#                                                  time)
-        
-        
-        # Add limit on size of the time windows.
-#         time_dimension = routing.GetDimensionOrDie(time)
-
-#         for order in xrange(1, num_locations):
-#             start = start_times[order]
-#             time_dimension.CumulVar(order).SetRange(start, start + tw_duration)
-
         # Solve displays a solution if any.
         assignment = routing.SolveWithParameters(search_parameters)
         if assignment:
@@ -202,6 +173,114 @@ def main(vehicle_capacity, depot_location, customer_locations, customer_demands)
             print ('No solution found.')
     else:
         print ('Specify an instance greater than 0.')
+
+def main_2(vehicle_capacity = 0, depot_location  = [], customer_locations  = [], customer_demands = []):
+    depot_num = len(depot_location)
+    
+    data_array = np.array_split(customer_locations, depot_num)
+    customer_demands = np.array_split(customer_demands, depot_num)
+    
+    root_output = []
+    
+    for data_depot_i in data_array:
+        locations = data_depot_i
+#         locations.append(depot_location.pop())
+        np.append(locations, depot_location.pop())
+        
+        # Create the data.
+        data = create_data_array()
+        demands = customer_demands.pop()
+    #     start_times = data[2]
+        num_locations = len(locations)
+        depot = 0
+        num_vehicles = 5
+        search_time_limit = 400000
+        output = []
+
+        # Create routing model.
+        if num_locations > 0:
+
+            # The number of nodes of the VRP is num_locations.
+            # Nodes are indexed from 0 to num_locations - 1. By default the start of
+            # a route is node 0.
+            routing = pywrapcp.RoutingModel(num_locations, num_vehicles, depot)
+            search_parameters = pywrapcp.RoutingModel.DefaultSearchParameters()
+
+            # Setting first solution heuristic: the
+            # method for finding a first solution to the problem.
+            search_parameters.first_solution_strategy = (
+                    routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+
+            # The 'PATH_CHEAPEST_ARC' method does the following:
+            # Starting from a route "start" node, connect it to the node which produces the
+            # cheapest route segment, then extend the route by iterating on the last
+            # node added to the route.
+
+            # Put callbacks to the distance function and travel time functions here.
+
+            dist_between_locations = CreateDistanceCallback(locations)
+            dist_callback = dist_between_locations.Distance
+
+            routing.SetArcCostEvaluatorOfAllVehicles(dist_callback)
+            demands_at_locations = CreateDemandCallback(demands)
+            demands_callback = demands_at_locations.Demand
+
+            # Adding capacity dimension constraints.
+            VehicleCapacity = vehicle_capacity;
+            NullCapacitySlack = 0;
+            fix_start_cumul_to_zero = True
+            capacity = "Capacity"
+
+            routing.AddDimension(demands_callback, NullCapacitySlack, VehicleCapacity,
+                                                     fix_start_cumul_to_zero, capacity)
+
+            # Solve displays a solution if any.
+            assignment = routing.SolveWithParameters(search_parameters)
+            if assignment:
+                data = create_data_array()
+                locations = data[0]
+                demands = data[1]
+    #             start_times = data[2]
+                size = len(locations)
+                # Solution cost.
+                print ("Total distance of all routes: " , str(assignment.ObjectiveValue()))
+                # Inspect solution.
+                capacity_dimension = routing.GetDimensionOrDie(capacity);
+    #             time_dimension = routing.GetDimensionOrDie(time);
+
+                for vehicle_nbr in xrange(num_vehicles):
+                    _output = []
+                    index = routing.Start(vehicle_nbr)
+                    plan_output = 'Route {0}:'.format(vehicle_nbr)
+
+                    while not routing.IsEnd(index):
+                        node_index = routing.IndexToNode(index)
+                        load_var = capacity_dimension.CumulVar(index)
+    #                     time_var = time_dimension.CumulVar(index)
+                        plan_output += \
+                                            " {node_index} Load({load})  -> ".format(
+                                                    node_index=node_index,
+                                                    load=assignment.Value(load_var))
+                        _output.append(node_index)
+                        index = assignment.Value(routing.NextVar(index))
+
+                    node_index = routing.IndexToNode(index)
+                    _output.append(node_index)
+                    load_var = capacity_dimension.CumulVar(index)
+    #                 time_var = time_dimension.CumulVar(index)
+                    plan_output += \
+                                        " {node_index} Load({load})".format(
+                                                node_index=node_index,
+                                                load=assignment.Value(load_var))
+                    output.append(_output)
+                    print (plan_output)
+
+                    root_output.append(output)
+            else:
+                print ('No solution found.')
+        else:
+            print ('Specify an instance greater than 0.')
+    return root_output
 
 
 
@@ -303,24 +382,20 @@ class mdcvrp:
         resp.body = 'OK'
 
     def on_post(self, req, resp):
-        try:
-            print req.context
-            data = req.context['doc']
-            data = data['problem_data']
+        # try:
+        print req.context
+        data = req.context['doc']
+        data = data['problem_data']
 
-            response =  {
-                "routes": [
-                    [[0, 2, 4]], # Routes from the first depot
-                    [[1, 3]],    # Routes from the second depot
-                ]
-            }
+        json_data = main_2(data['vehicle_capacity'], data['depots'], 
+                         data['customer_locations'], data['customer_demands'])
+
+        resp.body = json.dumps({"routes": json_data})
             
-            resp.body = json.dumps(response)
-            
-        except KeyError:
-            raise falcon.HTTPBadRequest(
-                'Missing thing',
-                'A thing must be submitted in the request body.')
+        # except KeyError:
+        #     raise falcon.HTTPBadRequest(
+        #         'Missing thing',
+        #         'A thing must be submitted in the request body.')
 
 class Index:
     def on_get(self, req, res):
