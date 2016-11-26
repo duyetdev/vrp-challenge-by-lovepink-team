@@ -298,6 +298,30 @@ class VRPApi:
                 'Missing thing',
                 'A thing must be submitted in the request body.')
 
+class mdcvrp:
+    def on_get(self, req, resp):
+        resp.body = 'OK'
+
+    def on_post(self, req, resp):
+        try:
+            print req.context
+            data = req.context['doc']
+            data = data['problem_data']
+
+            response =  {
+                "routes": [
+                    [[0, 2, 4]], # Routes from the first depot
+                    [[1, 3]],    # Routes from the second depot
+                ]
+            }
+            
+            resp.body = json.dumps(response)
+            
+        except KeyError:
+            raise falcon.HTTPBadRequest(
+                'Missing thing',
+                'A thing must be submitted in the request body.')
+
 class Index:
     def on_get(self, req, res):
             res.body = 'We dont talk anymore !!!'
@@ -308,6 +332,7 @@ api = falcon.API(middleware=[
 ])
 
 api.add_route('/cvrp', VRPApi())
+api.add_route('/mdcvrp', mdcvrp())
 api.add_route('/', Index())
 
 # if __name__ == '__main__':
