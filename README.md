@@ -1,4 +1,4 @@
-## Sample application
+# Sample application
 
 [![build status](https://gitlab.honestbee.com/binhngoc17/vrp_public/badges/master/build.svg)](https://gitlab.honestbee.com/binhngoc17/vrp_public/commits/master)
 
